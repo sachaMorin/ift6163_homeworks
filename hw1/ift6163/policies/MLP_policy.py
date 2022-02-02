@@ -37,6 +37,8 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
         self.learning_rate = learning_rate
         self.training = training
         self.nn_baseline = nn_baseline
+        self.mean = None
+        self.std = None
 
         if self.discrete:
             self.logits_na = ptu.build_mlp(
@@ -80,8 +82,14 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
         else:
             observation = obs[None]
 
-        # TODO return the action that the policy prescribes
-        raise NotImplementedError
+        if self.discrete:
+            raise NotImplementedError('get_action has no discrete implementation')
+        else:
+            observation = ptu.from_numpy(observation)
+            action = self(observation)
+
+        # TODO (Done) return the action that the policy prescribes
+        return ptu.to_numpy(action)
 
     # update/train this policy
     def update(self, observations, actions, **kwargs):
@@ -93,7 +101,7 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     # return more flexible objects, such as a
     # `torch.distributions.Distribution` object. It's up to you!
     def forward(self, observation: torch.FloatTensor) -> Any:
-        raise NotImplementedError
+        return self.mean_net(observation)
 
 
 #####################################################
@@ -108,8 +116,16 @@ class MLPPolicySL(MLPPolicy):
             self, observations, actions,
             adv_n=None, acs_labels_na=None, qvals=None
     ):
-        # TODO: update the policy and return the loss
-        loss = TODO
+        # TODO(Done): update the policy and return the loss
+        if self.discrete:
+            raise NotImplementedError('Discrete loss is not implemented.')
+        else:
+            self.optimizer.zero_grad()
+            actions_pred = self(ptu.from_numpy(observations))
+            actions = ptu.from_numpy(actions)
+            loss = self.loss(actions_pred, actions)
+            loss.backward()
+            self.optimizer.step()
         return {
             # You can add extra logging information here, but keep this line
             'Training Loss': ptu.to_numpy(loss),

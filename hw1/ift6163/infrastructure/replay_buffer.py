@@ -5,7 +5,7 @@ class ReplayBuffer(object):
 
     def __init__(self, max_size=1000000):
 
-        self.max_size = max_size
+        self.max_size = int(max_size)
 
         # store each rollout
         self.paths = []
@@ -72,12 +72,13 @@ class ReplayBuffer(object):
                 == self.terminals.shape[0]
         )
 
-        ## TODO return batch_size number of random entries from each of the 5 component arrays above
+        ## TODO (Done) return batch_size number of random entries from each of the 5 component arrays above
         ## HINT 1: use np.random.permutation to sample random indices
         ## HINT 2: return corresponding data points from each array (i.e., not different indices from each array)
         ## HINT 3: look at the sample_recent_data function below
+        idx = np.random.permutation(len(self.obs))[:batch_size]
 
-        return TODO, TODO, TODO, TODO, TODO
+        return self.obs[idx], self.acs[idx], self.rews[idx], self.next_obs[idx], self.terminals[idx]
 
     def sample_recent_data(self, batch_size=1):
         return (

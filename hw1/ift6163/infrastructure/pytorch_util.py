@@ -45,9 +45,23 @@ def build_mlp(
     if isinstance(output_activation, str):
         output_activation = _str_to_activation[output_activation]
 
-    # TODO: return a MLP. This should be an instance of nn.Module
-    # Note: nn.Sequential is an instance of nn.Module.
-    raise NotImplementedError
+    def linear_block(input_dim, output_dim, activation):
+        return [torch.nn.Linear(input_dim, output_dim), activation]
+
+    # Build input layer
+    nn = linear_block(input_size, size, activation)
+
+    # Append the hidden layers
+    for _ in range(n_layers-1):
+        nn += linear_block(size, size, activation)
+
+    # Append the last layer
+    nn += linear_block(size, output_size, output_activation)
+
+    # Sequential module
+    nn = torch.nn.Sequential(*nn)
+
+    return nn
 
 
 device = None

@@ -1,16 +1,16 @@
 env: 
-  expert_policy_file: ./ift6163/policies/experts/Ant.pkl # Relative to where you're running this script from 
-  expert_data: ./ift6163/expert_data/expert_data_Ant-v2.pkl  # Relative to where you're running this script from
-  exp_name: "ant_dagger"
-  env_name: Ant-v2 # choices are [Ant-v2, Humanoid-v2, Walker2d-v2, HalfCheetah-v2, Hopper-v2]
+  expert_policy_file: ./ift6163/policies/experts/Walker2d.pkl # Relative to where you're running this script from
+  expert_data: ./ift6163/expert_data/expert_data_Walker2d-v2.pkl  # Relative to where you're running this script from
+  exp_name: "walker_dagger"
+  env_name: Walker2d-v2 # choices are [Ant-v2, Humanoid-v2, Walker2d-v2, HalfCheetah-v2, Hopper-v2]
   max_episode_length: 1000
   render: false
   
 alg:
-  num_rollouts: 10
-  do_dagger: true
-  num_agent_train_steps_per_iter: 1000 # number of gradient steps for training policy (per iter in n_iter)
-  n_iter: 10
+  num_rollouts: 5
+  do_dagger: false
+  num_agent_train_steps_per_iter: 4000 # number of gradient steps for training policy (per iter in n_iter)
+  n_iter: 1
   batch_size: 1000 # training data collected (in the env) during each iteration
   eval_batch_size: 10000 # eval data collected (in the env) for logging metrics
   train_batch_size: 100 # number of sampled data points to be used per gradient/train step

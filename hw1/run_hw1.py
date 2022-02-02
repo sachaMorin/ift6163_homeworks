@@ -74,6 +74,7 @@ def my_app(cfg: DictConfig):
 
     ## directory for logging
     data_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data')
+    print(data_path)
     if not (os.path.exists(data_path)):
         os.makedirs(data_path)
     logdir = logdir_prefix + cfg.env.exp_name + '_' + cfg.env.env_name + '_' + time.strftime("%d-%m-%Y_%H-%M-%S")

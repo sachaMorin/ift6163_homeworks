@@ -1,3 +1,23 @@
+## Reproducing experiments
+All experiments have their own configs.
+```
+# Question 1.2
+python3 run_hw1.py --config-name config_q1_ant_bc
+python3 run_hw1.py --config-name config_q1_walker_bc
+
+# Question 1.3
+python3 run_hw1.py --config-name config_q1_walker_bc_2000
+python3 run_hw1.py --config-name config_q1_walker_bc_4000
+python3 run_hw1.py --config-name config_q1_walker_bc_6000
+python3 run_hw1.py --config-name config_q1_walker_bc_8000
+python3 run_hw1.py --config-name config_q1_walker_bc_10000
+
+# Question 2.2
+python3 run_hw1.py --config-name config_q1_ant_dagger
+python3 run_hw1.py --config-name config_q1_walker_dagger
+```
+
+# Original README
 ## Setup
 
 You can run this code on your own machine or on Google Colab. 

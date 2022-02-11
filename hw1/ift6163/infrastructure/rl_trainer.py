@@ -96,7 +96,6 @@ class RL_Trainer(object):
                 self.log_video = True
             else:
                 self.log_video = False
-            self.log_video = True
 
             # decide if metrics should be logged
             if itr % self.params['logging']['scalar_log_freq'] == 0:
@@ -166,8 +165,8 @@ class RL_Trainer(object):
         if itr == 0:
             with open(os.path.join('..', '..', '..', load_initial_expertdata), 'rb') as file:
                 expert_data = pickle.load(file)
-            train_video_paths = utils.sample_n_trajectories(self.env, collect_policy, MAX_NVIDEO, MAX_VIDEO_LEN, True)
-            return expert_data, 0, train_video_paths
+            # train_video_paths = utils.sample_n_trajectories(self.env, collect_policy, MAX_NVIDEO, MAX_VIDEO_LEN, True)
+            return expert_data, 0, None
 
         # TODO (Done) collect `batch_size` samples to be used for training
         # HINT1: use sample_trajectories from utils

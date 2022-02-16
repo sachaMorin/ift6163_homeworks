@@ -1,3 +1,6 @@
+## Results
+Please refer to assignment for all experiment commands.
+
 ## Setup
 
 You can run this code on your own machine or on Google Colab (Colab is not completely supported). 

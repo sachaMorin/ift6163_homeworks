@@ -1,6 +1,7 @@
 from .base_critic import BaseCritic
 from torch import nn
 from torch import optim
+from ift6163.infrastructure import pytorch_util as ptu
 
 from ift6163.infrastructure import pytorch_util as ptu
 
@@ -73,7 +74,7 @@ class BootstrappedContinuousCritic(nn.Module, BaseCritic):
             returns:
                 training loss
         """
-        # TODO: Implement the pseudocode below: do the following (
+        # TODO(Done): Implement the pseudocode below: do the following (
         # self.num_grad_steps_per_target_update * self.num_target_updates)
         # times:
         # every self.num_grad_steps_per_target_update steps (which includes the
@@ -86,5 +87,23 @@ class BootstrappedContinuousCritic(nn.Module, BaseCritic):
         #       to 0) when a terminal state is reached
         # HINT: make sure to squeeze the output of the critic_network to ensure
         #       that its dimensions match the reward
+        reward_n = ptu.from_numpy(reward_n)
+        terminal_n = ptu.from_numpy(terminal_n)
+        ob_no = ptu.from_numpy(ob_no)
+        next_ob_no = ptu.from_numpy(next_ob_no)
+
+        for _ in range(self.num_target_updates):
+            # Recompute the target
+            v_prime = self.forward(next_ob_no).squeeze()
+            target = reward_n + self.gamma * v_prime * (1 - terminal_n)
+            target = target.detach()
+
+            # Update the critic a few times
+            for _ in range(self.num_grad_steps_per_target_update):
+                self.optimizer.zero_grad()
+                v = self.forward(ob_no).squeeze()
+                loss = self.loss(v, target)
+                loss.backward()
+                self.optimizer.step()
 
         return loss.item()

@@ -52,15 +52,23 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
             self.mean_net = ptu.build_mlp(input_size=self.ob_dim,
                                           output_size=self.ac_dim,
                                           n_layers=self.n_layers, size=self.size)
-            self.logstd = nn.Parameter(
-                torch.zeros(self.ac_dim, dtype=torch.float32, device=ptu.device)
-            )
             self.mean_net.to(ptu.device)
-            self.logstd.to(ptu.device)
+
+            self.logstd = nn.Parameter(
+                torch.zeros(self.ac_dim, dtype=torch.float32, device=ptu.device) + 0
+            )
+            # self.logstd.to(ptu.device)
+            # Learnable standard dev
             self.optimizer = optim.Adam(
                 itertools.chain([self.logstd], self.mean_net.parameters()),
                 self.learning_rate
             )
+
+            # No learnable standard dev
+            # self.optimizer = optim.Adam(
+            #     itertools.chain(self.mean_net.parameters()),
+            #     self.learning_rate
+            # )
 
         if nn_baseline:
             self.baseline = ptu.build_mlp(
@@ -97,6 +105,8 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
         # else:
         observation = ptu.from_numpy(observation)
         action = self(observation).sample()
+
+        # action = torch.normal(mean=action, std=2)
 
         return ptu.to_numpy(action)
 
@@ -156,10 +166,13 @@ class MLPPolicyPG(MLPPolicy):
         loss.backward()
         self.optimizer.step()
 
-        print('\nLoss policy gradient')
-        print(loss)
+        # print('\nLoss policy gradient')
+        # print(loss)
 
         if self.nn_baseline:
+            q_values = ptu.from_numpy(q_values)
+            q_values_normalized = (q_values - q_values.mean()) / (q_values.std() + 1e-8)
+
             ## TODO(Done): update the neural network baseline using the q_values as
             ## targets. The q_values should first be normalized to have a mean
             ## of zero and a standard deviation of one.
@@ -168,8 +181,6 @@ class MLPPolicyPG(MLPPolicy):
             ## updating the baseline. Remember to 'zero_grad' first
             ## HINT2: You will need to convert the targets into a tensor using
             ## ptu.from_numpy before using it in the loss
-            q_values = ptu.from_numpy(q_values)
-            q_values_normalized = (q_values - q_values.mean()) / q_values.std()
 
             self.baseline_optimizer.zero_grad()
             out = self.baseline(observations)
@@ -177,9 +188,11 @@ class MLPPolicyPG(MLPPolicy):
             loss_baseline.backward()
             self.baseline_optimizer.step()
 
-            print('Loss baseline')
-            print(loss_baseline)
-            print('\n')
+            # print('Loss baseline')
+            # print(loss_baseline)
+            # print('\n')
+            # print(self.logstd)
+            # print('\n')
 
         train_log = {
             'Training Loss': ptu.to_numpy(loss),

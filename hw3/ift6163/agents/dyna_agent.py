@@ -44,12 +44,11 @@ class MBAgent(BaseAgent):
 
     def train(self, ob_no, ac_na, re_n, next_ob_no, terminal_n):
 
-        # training a MB agent refers to updating the predictive model using observed state transitions
-        # NOTE: each model in the ensemble is trained on a different random batch of size batch_size
+        # # training a MB agent refers to updating the predictive model using observed state transitions
+        # # NOTE: each model in the ensemble is trained on a different random batch of size batch_size
         losses = []
         num_data = ob_no.shape[0]
         num_data_per_ens = int(num_data / self.ensemble_size)
-
         for i in range(self.ensemble_size):
 
             # select which datapoints to use for this model of the ensemble
@@ -66,7 +65,7 @@ class MBAgent(BaseAgent):
                                 self.data_statistics)
             loss = log['Training Loss']
             losses.append(loss)
-            
+
         # TODO (Done) Pick a model at random
         model_idx = np.random.choice(len(self.dyn_models))
         model = self.dyn_models[model_idx]
@@ -77,7 +76,7 @@ class MBAgent(BaseAgent):
         new_actions = self.actor.get_action(ob_no)
         new_obs = model.get_prediction(ob_no, ac_na, self.data_statistics)
         new_rewards, new_terminals = self.env.get_reward(ob_no, new_actions)
-        
+
         # TODO (Done) add this generated data to the real data
         ob_no_aug = np.concatenate((ob_no, ob_no))
         ac_na_aug = np.concatenate((ac_na, new_actions))
@@ -88,7 +87,11 @@ class MBAgent(BaseAgent):
         # TODO (Done) Perform a policy gradient update
         # Update the critic
         for _ in range(self.agent_params['num_critic_updates_per_agent_update']):
-            critic_loss = self.critic.update(ob_no_aug, ac_na_aug, next_ob_no_aug, re_n_aug, terminal_n_aug)
+            if self.agent_params['real_critic']:
+                print('Updating critic only with real data...')
+                critic_loss = self.critic.update(ob_no, ac_na, next_ob_no, re_n, terminal_n)
+            else:
+                critic_loss = self.critic.update(ob_no_aug, ac_na_aug, next_ob_no_aug, re_n_aug, terminal_n_aug)
 
         advantage = self.estimate_advantage(ob_no_aug, next_ob_no_aug, re_n_aug, terminal_n_aug)
 
@@ -127,7 +130,7 @@ class MBAgent(BaseAgent):
     def sample(self, batch_size):
         # NOTE: sampling batch_size * ensemble_size,
         # so each model in our ensemble can get trained on batch_size data
-        return self.replay_buffer.sample_random_data(
+        return self.replay_buffer.sample_recent_data(
             batch_size * self.ensemble_size)
 
     def estimate_advantage(self, ob_no, next_ob_no, re_n, terminal_n):

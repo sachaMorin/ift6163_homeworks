@@ -29,7 +29,7 @@ class pg_Trainer(object):
         tmp = OmegaConf.create({'agent_params' : agent_params })
 
         self.params = OmegaConf.merge(tmp , params)
-        self.params['batch_size_initial'] = self.params['batch_size']
+        # self.params['batch_size_initial'] = self.params['batch_size_initial']
 
         if self.params['rl_alg'] == 'reinforce':
             agent = PGAgent

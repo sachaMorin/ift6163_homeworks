@@ -108,7 +108,7 @@ class PGAgent(BaseAgent):
             ## TODO (Done): values were trained with standardized q_values, so ensure
             ## that the predictions have the same mean and standard deviation as
             ## the current batch of q_values
-            values_normalized = (values_unnormalized - values_unnormalized.mean())/values_unnormalized.std()
+            values_normalized = (values_unnormalized - values_unnormalized.mean())/(values_unnormalized.std() + 1e-8)
 
             # Unormalize with q stats
             values = (values_normalized * q_values.std()) + q_values.mean()
@@ -157,7 +157,7 @@ class PGAgent(BaseAgent):
             ## TODO (Done): standardize the advantages to have a mean of zero
             ## and a standard deviation of one
             advantages -= advantages.mean()
-            advantages /= advantages.std()
+            advantages /= (advantages.std() + 1e-8)
 
         return advantages
 

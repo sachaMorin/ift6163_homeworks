@@ -33,33 +33,18 @@ class DQNCritic(BaseCritic):
             out_size = 1
 
         self.optimizer_spec = optimizer_spec
-        # network_initializer = hparams['q_func']
-        # self.q_net = network_initializer(self.ob_dim, self.ac_dim)
-        # self.q_net_target = network_initializer(self.ob_dim, self.ac_dim)
-        if hparams['atari']:
-            self.q_net = dqnu.create_atari_q_network(self.ob_dim,self.ac_dim* out_size)
-            self.q_net_target = dqnu.create_atari_q_network(self.ob_dim,self.ac_dim* out_size)
-        else:
-            self.q_net = ptu.build_mlp(
-                self.ob_dim,
-                out_size * self.ac_dim,
-                n_layers=self.n_layers,
-                size=self.size,
-            )
-            self.q_net_target = ptu.build_mlp(
-                self.ob_dim,
-                out_size *self.ac_dim,
-                n_layers=self.n_layers,
-                size=self.size,
-            )
-        self.optimizer = optim.Adam(
+        network_initializer = hparams['q_func']
+        self.q_net = network_initializer(self.ob_dim, self.ac_dim)
+        self.q_net_target = network_initializer(self.ob_dim, self.ac_dim)
+        
+        self.optimizer = self.optimizer_spec.constructor(
             self.q_net.parameters(),
-            self.learning_rate,
-            )
-        # self.learning_rate_scheduler = optim.lr_scheduler.LambdaLR(
-        #     self.optimizer,
-        #     self.optimizer_spec.learning_rate_schedule,
-        # )
+            **self.optimizer_spec.optim_kwargs
+        )
+        self.learning_rate_scheduler = optim.lr_scheduler.LambdaLR(
+            self.optimizer,
+            self.optimizer_spec.learning_rate_schedule,
+        )
         self.loss = nn.SmoothL1Loss()  # AKA Huber loss
         self.q_net.to(ptu.device)
         self.q_net_target.to(ptu.device)

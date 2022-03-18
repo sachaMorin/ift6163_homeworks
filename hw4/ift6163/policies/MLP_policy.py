@@ -92,11 +92,8 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
         else:
             observation = obs[None]
 
-        if self.discrete:
-            raise NotImplementedError('get_action has no discrete implementation')
-        else:
-            observation = ptu.from_numpy(observation)
-            action = self(observation)
+        observation = ptu.from_numpy(observation)
+        action = self(observation)
 
         # TODO (Done) return the action that the policy prescribes
         return ptu.to_numpy(action)
@@ -117,6 +114,9 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
             return action_distribution
         else:
             batch_mean = self._mean_net(observation)
+            if self._deterministic:
+                return batch_mean
+
             scale_tril = torch.diag(torch.exp(self._logstd))
             batch_dim = batch_mean.shape[0]
             batch_scale_tril = scale_tril.repeat(batch_dim, 1, 1)
